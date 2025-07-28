@@ -2,7 +2,7 @@
 
 ### Now made with 100% more Kotlin!
 
-Flug is a simple functional programming language made by Truttle1 to learn how 
+Flug is a simple programming language made by Truttle1 to learn how 
 programming language implementation works.
 
 ## Features
@@ -49,7 +49,7 @@ while (<cond>) {
 
 ### Semicolons
 
-Flug is a functional language where everything is evaluated as an expression.
+Flug is a language where everything is evaluated as an expression.
 Semicolons (`;`) exist to seperate Flug expressions, where the left side of the expression
 does side effects (like mutating variables) and the right
 side returns its expression to whatever comes next.
