@@ -1,6 +1,6 @@
 # ✈️ Flug ✈️
 
-### Now with 100% more Kotlin!
+### Now made with 100% more Kotlin!
 
 Flug is a simple functional programming language made by Truttle1 to learn how 
 programming language implementation works.
