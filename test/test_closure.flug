@@ -1,0 +1,25 @@
+let count_constructor = func(init) => {
+    let count = init;
+    func(cmd) => {
+        if(cmd == 0) {
+            count
+        }
+        elif(cmd == 1) {
+            count = count + 1;
+            count
+        }
+        elif(cmd == 2) {
+            count = 0;
+            count
+        }
+        else {
+            count
+        }
+    }
+};
+
+let my_count = count_constructor(3);
+outn(my_count(1));
+outn(my_count(1));
+outn(my_count(1));
+outn(my_count(0))

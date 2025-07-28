@@ -1,0 +1,6 @@
+const f = func(a, const b) => {
+    a = a + 1;
+    b = b + 1;
+    a * b
+};
+f(3, 4)

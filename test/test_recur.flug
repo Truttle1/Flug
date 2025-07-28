@@ -1,0 +1,29 @@
+let odd = func(value) => {
+    if(value == 1) {
+        true
+    }
+    else {
+        if(value == 0) {
+            false
+        } 
+        else {
+            even(value - 1)
+        }
+    }
+};
+
+let even = func(value) => {
+    if(value == 0) {
+        true
+    }
+    else {
+        if(value == 1) {
+            false
+        }
+        else {
+            odd(value - 1)
+        }
+    }
+};
+
+even(1001)

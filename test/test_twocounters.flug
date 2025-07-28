@@ -1,0 +1,29 @@
+const count_constructor = func(const init) => {
+    let count = init;
+    func(const cmd) => {
+        if(cmd == 0) {
+            count
+        }
+        elif(cmd == 1) {
+            count = count + 1;
+            count
+        }
+        elif(cmd == 2) {
+            count = 0;
+            count
+        }
+        else {
+            count
+        }
+    }
+};
+
+const a = count_constructor(3);
+const b = count_constructor(0);
+outn(a(0));
+outn(b(0));
+b(1);
+a(2);
+outn(a(0));
+outn(b(0))
+

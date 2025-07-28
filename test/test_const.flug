@@ -1,0 +1,19 @@
+const factorial = func(const x) => {
+    if(x <= 1) {
+        1
+    }
+    else {
+        x * factorial(x - 1)
+    }
+};
+
+const fib = func(const x) => {
+    if(x <= 1) {
+        1
+    }
+    else {
+        fib(x - 1) + fib(x - 2)
+    }
+};
+
+fib(7) + factorial(3 + 2)

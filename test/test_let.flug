@@ -1,0 +1,8 @@
+let x = 4;
+let z = 3;
+if(x < z) {
+    4
+}
+else {
+    5
+}
