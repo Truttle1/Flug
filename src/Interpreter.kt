@@ -13,7 +13,7 @@ fun interpret(expr: ASTNode?, env: Environment) : Value? {
             if (result == null) {
                 throw Exception("Interpreter error: No expression on right side of let")
             }
-            env.assign(identifier.name, result, identifier.constant)
+            env.let(identifier.name, result, identifier.constant)
             return Value.BoolValue(true)
         }
 
@@ -197,7 +197,7 @@ fun interpret(expr: ASTNode?, env: Environment) : Value? {
                 if (arg == null) {
                     throw Exception("Got undefined argument in function call.")
                 }
-                callEnv.assign(param.name, arg, param.constant)
+                callEnv.let(param.name, arg, param.constant)
             }
             return interpret(funDecl.expr, callEnv)
         }

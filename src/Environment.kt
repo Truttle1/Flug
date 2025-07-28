@@ -28,6 +28,15 @@ class Environment(val parent: Environment?) {
         values[name] = ValueAndConstStatus(value, constant)
     }
 
+    fun let(name: String, value: Value, constant: Boolean) {
+        if (values.contains(name)) {
+            if (values[name]!!.constant) {
+                throw Exception("Interpreter error: Cannot reassign constant $name")
+            }
+        }
+        values[name] = ValueAndConstStatus(value, constant)
+    }
+
     fun get(name: String) : Value? {
         if (values.contains(name)) {
             return values[name]?.value

@@ -77,13 +77,13 @@ class Parser(
             return ASTNode.IfElse(conds, ifTrues, ifFalse)
         }
         else if (match(TokenType.While)) {
-            consume(TokenType.LeftParenthesis, "expected '(' after 'if'.")
+            consume(TokenType.LeftParenthesis, "expected '(' after 'while'.")
             val cond = parse()
-            consume(TokenType.RightParenthesis, "expected ')' after 'if' condition.")
+            consume(TokenType.RightParenthesis, "expected ')' after 'while' condition.")
 
-            consume(TokenType.LeftCurlyBracket, "expected '{' to begin 'if' block.")
+            consume(TokenType.LeftCurlyBracket, "expected '{' to begin 'while' block.")
             val whileTrue = parse()
-            consume(TokenType.RightCurlyBracket, "expected '}' to close 'if' block.")
+            consume(TokenType.RightCurlyBracket, "expected '}' to close 'while' block.")
 
             return ASTNode.While(cond, whileTrue)
         }
