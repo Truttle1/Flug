@@ -191,7 +191,7 @@ fun interpret(expr: ASTNode?, env: Environment) : Value? {
                         funDecl.params.size + " arguments but got " + args.size)
             }
 
-            val callEnv = Environment(function.value.closure)
+            val callEnv = Environment(function.value.env)
             for ((i, arg) in args.withIndex()) {
                 val param = funDecl.params[i] as ASTNode.Identifier
                 if (arg == null) {
@@ -201,7 +201,7 @@ fun interpret(expr: ASTNode?, env: Environment) : Value? {
             }
             return interpret(funDecl.expr, callEnv)
         }
-        is ASTNode.FunctionDec -> return Value.FuncValue(FunctionValue(expr, Environment(env)))
+        is ASTNode.FunctionDec -> return Value.FuncValue(Closure(expr, Environment(env)))
         is ASTNode.Identifier -> {
             if (env.get(expr.name) == null) {
                 throw Exception("Undefined variable $expr")
