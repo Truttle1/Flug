@@ -4,7 +4,7 @@ let odd = func(value) => {
     }
     elif(value == 0) {
             false
-    } 
+    }
     else {
         even(value - 1)
     }

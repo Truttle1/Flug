@@ -5,6 +5,7 @@ import java.io.File
 fun main(args: Array<String>) {
     if(args.size != 1) {
         println("Usage: flug <filename>")
+        return
     }
 
     val file = File(args[0]);
