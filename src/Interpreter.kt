@@ -10,11 +10,9 @@ fun interpret(expr: ASTNode?, env: Environment) : Value? {
             val identifier = expr.identifier
 
             val result = interpret(expr.expr, Environment(env))
-            if (result == null) {
-                throw Exception("Interpreter error: No expression on right side of let")
-            }
+                ?: throw Exception("Interpreter error: No expression on right side of let")
             env.let(identifier.name, result, identifier.constant)
-            return Value.BoolValue(true)
+            return result
         }
 
         is ASTNode.Assign -> {
@@ -24,11 +22,9 @@ fun interpret(expr: ASTNode?, env: Environment) : Value? {
             val identifier = expr.identifier
 
             val result = interpret(expr.expr, Environment(env))
-            if (result == null) {
-                throw Exception("Interpreter error: No expression on right side of let")
-            }
+                ?: throw Exception("Interpreter error: No expression on right side of let")
             env.assign(identifier.name, result, identifier.constant)
-            return Value.BoolValue(true)
+            return result
         }
 
         is ASTNode.BinOp -> {
