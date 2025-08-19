@@ -8,16 +8,14 @@ fun main(args: Array<String>) {
         return
     }
 
-    val file = File(args[0]);
+    val file = File(args[0])
     val code = file.readText()
 
     val tokens = tokenize(code)
 
     val parser = Parser(tokens)
     val ast = parser.parse()
-    val interpreted = interpret(ast, Environment(null))
-
-    when (interpreted) {
+    when (val interpreted = interpret(ast, Environment(null))) {
         is Value.BoolValue -> println(interpreted.value)
         is Value.FuncValue -> println("<FUNCTION>")
         is Value.NumValue -> println(interpreted.value)

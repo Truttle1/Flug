@@ -10,11 +10,9 @@ class Parser(
 
     private fun parseSemicolon(): ASTNode {
         var left = parseFunctionDec()
-            ?: throw Exception("Parser error: expected an expression at beginning of statement.")
 
         while (match(TokenType.Semicolon)) {
             val right = parseFunctionDec()
-                ?: throw Exception("Parser error: expected an expression after semicolon.")
 
             left = ASTNode.Semicolon(left, right)
         }
@@ -22,7 +20,7 @@ class Parser(
         return left
     }
 
-    private fun parseFunctionDec(): ASTNode? {
+    private fun parseFunctionDec(): ASTNode {
         if(match(TokenType.Function)) {
             consume(TokenType.LeftParenthesis, "expected '(' after 'function'.")
 
@@ -48,7 +46,7 @@ class Parser(
         return parseStatement()
     }
 
-    private fun parseStatement(): ASTNode? {
+    private fun parseStatement(): ASTNode {
         if(match(TokenType.If)) {
             val conds = ArrayList<ASTNode?>()
             val ifTrues = ArrayList<ASTNode?>()
@@ -110,18 +108,13 @@ class Parser(
         return parseAssign()
     }
 
-    private fun parseAssign(): ASTNode? {
-        var left = parseOr()
-        if(left == null) {
-            throw Exception("Parser error: expected an expression on the left-hand side of assignment.")
-        }
+    private fun parseAssign(): ASTNode {
+        var left =
+            parseOr()
 
         while(true) {
             if (match(TokenType.Equal)) {
                 val right = parseFunctionDec()
-                if(right == null) {
-                    throw Exception("\"Parser error: expected an expression on the right-hand side of assignment.")
-                }
                 left = ASTNode.Assign(left, right)
             }
             else {
@@ -132,17 +125,11 @@ class Parser(
     }
 
 
-    private fun parseOr(): ASTNode? {
+    private fun parseOr(): ASTNode {
         var left = parseAnd()
-        if(left == null) {
-            throw Exception("Parser error: expected an expression before boolean operator.")
-        }
         while (true) {
             if(match (TokenType.OrOr)) {
                 val right = parseAnd()
-                if(right == null) {
-                    throw Exception("Parser error: expected an expression after '||' operator.")
-                }
                 left = ASTNode.BinOp(BinOpType.Or, left, right)
             }
             else {
@@ -152,17 +139,12 @@ class Parser(
         return left
     }
 
-    private fun parseAnd(): ASTNode? {
+    private fun parseAnd(): ASTNode {
         var left = parseEquality()
-        if(left == null) {
-            throw Exception("Parser error: expected an expression before boolean operator.")
-        }
         while (true) {
             if(match (TokenType.AndAnd)) {
-                val right = parseEquality()
-                if(right == null) {
-                    throw Exception("Parser error: expected an expression after '&&' operator.")
-                }
+                val right =
+                    parseEquality()
                 left = ASTNode.BinOp(BinOpType.And, left, right)
             }
             else {
@@ -172,24 +154,16 @@ class Parser(
         return left
     }
 
-    private fun parseEquality(): ASTNode? {
-        var left = parseComparison()
-        if(left == null) {
-            throw Exception("Parser error: expected an expression before equality operator.")
-        }
+    private fun parseEquality(): ASTNode {
+        var left =
+            parseComparison()
         while (true) {
             if(match (TokenType.EqualEqual)) {
                 val right = parseComparison()
-                if(right == null) {
-                    throw Exception("Parser error: expected an expression after '==' operator.")
-                }
                 left = ASTNode.BinOp(BinOpType.Equal, left, right)
             }
             else if(match (TokenType.NotEqual)) {
                 val right = parseComparison()
-                if (right == null) {
-                    throw Exception("Parser error: expected an expression after '!=' operator.")
-                }
                 left = ASTNode.BinOp(BinOpType.Neq, left, right)
             }
             else {
@@ -199,38 +173,23 @@ class Parser(
         return left
     }
 
-    private fun parseComparison(): ASTNode? {
+    private fun parseComparison(): ASTNode {
         var left = parseTerm()
-        if(left == null) {
-            throw Exception("Parser error: expected an expression before comparison operator.")
-        }
         while (true) {
             if(match (TokenType.Leq)) {
                 val right = parseTerm()
-                if(right == null) {
-                    throw Exception("Parser error: expected an expression after '<=' operator.")
-                }
                 left = ASTNode.BinOp(BinOpType.Leq, left, right)
             }
             else if(match (TokenType.Lt)) {
                 val right = parseTerm()
-                if(right == null) {
-                    throw Exception("Parser error: expected an expression after '<' operator.")
-                }
                 left = ASTNode.BinOp(BinOpType.Lt, left, right)
             }
             else if(match (TokenType.Gt)) {
                 val right = parseTerm()
-                if(right == null) {
-                    throw Exception("Parser error: expected an expression after '>' operator.")
-                }
                 left = ASTNode.BinOp(BinOpType.Gt, left, right)
             }
             else if(match (TokenType.Geq)) {
                 val right = parseTerm()
-                if(right == null) {
-                    throw Exception("Parser error: expected an expression after '>=' operator.")
-                }
                 left = ASTNode.BinOp(BinOpType.Geq, left, right)
             }
             else {
@@ -240,24 +199,15 @@ class Parser(
         return left
     }
 
-    private fun parseTerm(): ASTNode? {
+    private fun parseTerm(): ASTNode {
         var left = parseFactor()
-        if(left == null) {
-            throw Exception("Parser error: expected an expression before '+' or '-' operator.")
-        }
         while (true) {
             if(match (TokenType.Plus)) {
                 val right = parseFactor()
-                if(right == null) {
-                    throw Exception("Parser error: expected an expression after '+' operator.")
-                }
                 left = ASTNode.BinOp(BinOpType.Add, left, right)
             }
             else if (match(TokenType.Minus)) {
                 val right = parseFactor()
-                if(right == null) {
-                    throw Exception("Parser error: expected an expression after '-' operator.")
-                }
                 left = ASTNode.BinOp(BinOpType.Subtract, left, right)
             }
             else {
@@ -267,31 +217,20 @@ class Parser(
         return left
     }
 
-    private fun parseFactor(): ASTNode? {
-        var left = parseUnary()
-        if(left == null) {
-            throw Exception("Parser error: expected an expression before '*', '/', or '%' operator.")
-        }
+    private fun parseFactor(): ASTNode {
+        var left =
+            parseUnary() ?: throw Exception("Parser error: expected an expression before '*', '/', or '%' operator.")
         while (true) {
             if (match(TokenType.Multiply)) {
-                val right = parseUnary()
-                if(right == null) {
-                    throw Exception("Parser error: expected an expression after '*' operator.")
-                }
+                val right = parseUnary() ?: throw Exception("Parser error: expected an expression after '*' operator.")
                 left = ASTNode.BinOp(BinOpType.Multiply, left, right)
             }
             else if (match(TokenType.Divide)) {
-                val right = parseUnary()
-                if(right == null) {
-                    throw Exception("Parser error: expected an expression after '/' operator.")
-                }
+                val right = parseUnary() ?: throw Exception("Parser error: expected an expression after '/' operator.")
                 left = ASTNode.BinOp(BinOpType.Divide, left, right)
             }
             else if (match(TokenType.Modulus)) {
-                val right = parseUnary()
-                if(right == null) {
-                    throw Exception("Parser error: expected an expression after '%' operator.")
-                }
+                val right = parseUnary() ?: throw Exception("Parser error: expected an expression after '%' operator.")
                 left = ASTNode.BinOp(BinOpType.Modulus, left, right)
             }
             else {
@@ -303,17 +242,13 @@ class Parser(
 
     private fun parseUnary() : ASTNode? {
         if (match(TokenType.Minus)) {
-            val right = parseUnary()
-            if (right == null) {
-                throw Exception("Parser error: expected an expression after unary '-' operator.")
-            }
+            val right =
+                parseUnary() ?: throw Exception("Parser error: expected an expression after unary '-' operator.")
             return ASTNode.UnOp(UnOpType.Negate, right)
         }
         else if (match(TokenType.Not)) {
-            val right = parseUnary()
-            if (right == null) {
-                throw Exception("Parser error: expected an expression after unary '!' operator.")
-            }
+            val right =
+                parseUnary() ?: throw Exception("Parser error: expected an expression after unary '!' operator.")
             return ASTNode.UnOp(UnOpType.Not, right)
         }
         return parseBuiltInFunction()
@@ -324,9 +259,6 @@ class Parser(
         if(match(TokenType.OutNumber)) {
             consume(TokenType.LeftParenthesis, "Expected '(' after built in function name.")
             val param = parseOr()
-            if(param == null) {
-                throw Exception("Parser error: expected expression in function argument.")
-            }
             params += param
             consume(TokenType.RightParenthesis, "Expected ')' after function arguments.")
             return ASTNode.BuiltInCall(BuiltInFunction.OutNumber, params)
@@ -342,10 +274,8 @@ class Parser(
                 if (check(TokenType.RightParenthesis)) {
                     break
                 }
-                val param: ASTNode? = parseOr()
-                if (param == null) {
-                    throw Exception("Parser error: expected expression in function argument.")
-                }
+                val param: ASTNode =
+                    parseOr()
                 params += param
                 if (!match(TokenType.Comma)) {
                     break

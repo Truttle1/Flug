@@ -227,7 +227,6 @@ fun interpret(expr: ASTNode?, env: Environment) : Value? {
             throw Exception("Interpreter error: Unknown node type")
         }
     }
-    throw Exception("Interpreter error: Unknown node type")
 }
 
 fun checkNumberType(value: Value?, op: String ) {

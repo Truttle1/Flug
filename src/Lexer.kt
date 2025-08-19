@@ -6,11 +6,9 @@ enum class TokenType {
     Let,
     Const,
     If,
-    Then,
     Else,
     ElseIf,
     While,
-    Do,
     Function,
     Arrow,
 
@@ -68,13 +66,13 @@ data class LexNumberResult(
 )
 
 fun lexIdentifier(source: String, start: Int) : LexIdentifierResult {
-    var result: String = ""
+    var result = ""
     var end: Int = start
 
     for((i, chr) in source.substring(start).withIndex()) {
         end += 1
         if(isIdentifierChar(chr) || (i > 0 && isDigit(chr))) {
-            result += chr;
+            result += chr
         }
         else {
             end -= 1
@@ -86,7 +84,7 @@ fun lexIdentifier(source: String, start: Int) : LexIdentifierResult {
 }
 
 fun lexNumber(source: String, start: Int) : LexNumberResult {
-    var result: Int = 0
+    var result = 0
     var end: Int = start
 
     for(chr in source.substring(start)) {
@@ -104,9 +102,9 @@ fun lexNumber(source: String, start: Int) : LexNumberResult {
 }
 
 fun tokenize(input: String) : ArrayList<Token> {
-    var tokens: ArrayList<Token> = ArrayList()
+    val tokens: ArrayList<Token> = ArrayList()
 
-    var pos = 0;
+    var pos = 0
     while(pos < input.length) {
         val current = input[pos]
         if(isDigit(current)) {
@@ -129,7 +127,6 @@ fun tokenize(input: String) : ArrayList<Token> {
                 "else" -> tokens.add(Token.PlainToken(TokenType.Else))
                 "func" -> tokens.add(Token.PlainToken(TokenType.Function))
                 "while" -> tokens.add(Token.PlainToken(TokenType.While))
-                "const" -> tokens.add(Token.PlainToken(TokenType.Const))
                 "true", "false" -> tokens.add(Token.StringToken(keyword, TokenType.Boolean))
                 "outn" -> tokens.add(Token.PlainToken(TokenType.OutNumber))
                 else -> tokens.add(Token.StringToken(keyword,TokenType.Identifier))
