@@ -9,7 +9,7 @@ const fib = func(const x) => {
 
 let x = 0;
 while(x <= 10) {
-    outn(fib(x));
+    print(fib(x));
     x = x + 1
 };
-0
+null

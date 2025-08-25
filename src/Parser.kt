@@ -1,7 +1,10 @@
+import ast.*
+import lexer.Token
+import lexer.TokenType
 
 class Parser(
-    private val tokens: ArrayList<Token>,
-){
+    private val tokens: List<Token>,
+) {
     private var current: Int = 0
 
     fun parse(): ASTNode {
@@ -14,24 +17,24 @@ class Parser(
         while (match(TokenType.Semicolon)) {
             val right = parseFunctionDec()
 
-            left = ASTNode.Semicolon(left, right)
+            left = Semicolon(left, right)
         }
 
         return left
     }
 
     private fun parseFunctionDec(): ASTNode {
-        if(match(TokenType.Function)) {
+        if (match(TokenType.Function)) {
             consume(TokenType.LeftParenthesis, "expected '(' after 'function'.")
 
-            val params = ArrayList<ASTNode?>()
+            val params = mutableListOf<ASTNode>()
             while (true) {
                 if (check(TokenType.RightParenthesis)) break
                 val isConstant = match(TokenType.Const)
                 if (!check(TokenType.Identifier)) {
                     throw Exception("Parser error: expected identifier in parameter list.")
                 }
-                params += ASTNode.Identifier((advance() as Token.StringToken).value , isConstant)
+                params += Identifier((advance()).value!!, isConstant)
                 if (!check(TokenType.Comma)) break
                 advance()
             }
@@ -41,40 +44,13 @@ class Parser(
             val body = parse()
             consume(TokenType.RightCurlyBracket, "expected '}' to close function body.")
 
-            return ASTNode.FunctionDec(params, body)
+            return FunctionLiteral(params, body, null)
         }
         return parseStatement()
     }
 
     private fun parseStatement(): ASTNode {
-        if(match(TokenType.If)) {
-            val conds = ArrayList<ASTNode?>()
-            val ifTrues = ArrayList<ASTNode?>()
-
-            do {
-                consume(TokenType.LeftParenthesis, "expected '(' after 'if'.")
-                conds += parse()
-                consume(TokenType.RightParenthesis, "expected ')' after 'if' condition.")
-
-                consume(TokenType.LeftCurlyBracket, "expected '{' to begin 'if' block.")
-                ifTrues += parse()
-                consume(TokenType.RightCurlyBracket, "expected '}' to close 'if' block.")
-
-                if(!match(TokenType.ElseIf)) {
-                    break
-                }
-            } while(true)
-
-            var ifFalse: ASTNode? = null
-            if(peek().type == TokenType.Else) {
-                advance()
-                consume(TokenType.LeftCurlyBracket, "expected '{' to begin 'else' block.")
-                ifFalse = parse()
-                consume(TokenType.RightCurlyBracket, "expected '}' to close 'else' block.")
-            }
-            return ASTNode.IfElse(conds, ifTrues, ifFalse)
-        }
-        else if (match(TokenType.While)) {
+        if (match(TokenType.While)) {
             consume(TokenType.LeftParenthesis, "expected '(' after 'while'.")
             val cond = parse()
             consume(TokenType.RightParenthesis, "expected ')' after 'while' condition.")
@@ -83,27 +59,17 @@ class Parser(
             val whileTrue = parse()
             consume(TokenType.RightCurlyBracket, "expected '}' to close 'while' block.")
 
-            return ASTNode.While(cond, whileTrue)
-        }
-        else if (match(TokenType.Let)) {
-            if(!check(TokenType.Identifier)) {
+            return While(cond, whileTrue)
+        } else if (match(TokenType.Let) || match(TokenType.Const)) {
+            val variableType = previous()
+            if (!check(TokenType.Identifier)) {
                 throw Exception("Parser error: expected identifier after 'let'.")
             }
-            val name = (peek() as Token.StringToken).value
+            val name = peek().value!!
             advance()
             consume(TokenType.Equal, "expected '=' after 'let' declaration.")
             val value = parseFunctionDec()
-            return ASTNode.Let(ASTNode.Identifier(name, false), value)
-        }
-        else if (match(TokenType.Const)) {
-            if(!check(TokenType.Identifier)) {
-                throw Exception("Parser error: expected identifier after 'let'.")
-            }
-            val name = (peek() as Token.StringToken).value
-            advance()
-            consume(TokenType.Equal, "expected '=' after 'const' declaration.")
-            val value = parseFunctionDec()
-            return ASTNode.Let(ASTNode.Identifier(name, true), value)
+            return Let(Identifier(name, variableType.type == TokenType.Const), value)
         }
         return parseAssign()
     }
@@ -112,12 +78,11 @@ class Parser(
         var left =
             parseOr()
 
-        while(true) {
+        while (true) {
             if (match(TokenType.Equal)) {
                 val right = parseFunctionDec()
-                left = ASTNode.Assign(left, right)
-            }
-            else {
+                left = Assign(left, right)
+            } else {
                 break
             }
         }
@@ -128,11 +93,11 @@ class Parser(
     private fun parseOr(): ASTNode {
         var left = parseAnd()
         while (true) {
-            if(match (TokenType.OrOr)) {
+            if (match(TokenType.OrOr)) {
+                val orType = previous()
                 val right = parseAnd()
-                left = ASTNode.BinOp(BinOpType.Or, left, right)
-            }
-            else {
+                left = BinaryExpression(orType.type, left, right)
+            } else {
                 break
             }
         }
@@ -142,12 +107,12 @@ class Parser(
     private fun parseAnd(): ASTNode {
         var left = parseEquality()
         while (true) {
-            if(match (TokenType.AndAnd)) {
+            if (match(TokenType.AndAnd)) {
+                val andType = previous()
                 val right =
                     parseEquality()
-                left = ASTNode.BinOp(BinOpType.And, left, right)
-            }
-            else {
+                left = BinaryExpression(andType.type, left, right)
+            } else {
                 break
             }
         }
@@ -158,15 +123,11 @@ class Parser(
         var left =
             parseComparison()
         while (true) {
-            if(match (TokenType.EqualEqual)) {
+            if (match(TokenType.EqualEqual) || match(TokenType.NotEqualTo)) {
+                val equalityType = previous()
                 val right = parseComparison()
-                left = ASTNode.BinOp(BinOpType.Equal, left, right)
-            }
-            else if(match (TokenType.NotEqual)) {
-                val right = parseComparison()
-                left = ASTNode.BinOp(BinOpType.Neq, left, right)
-            }
-            else {
+                left = BinaryExpression(equalityType.type, left, right)
+            } else {
                 break
             }
         }
@@ -176,23 +137,19 @@ class Parser(
     private fun parseComparison(): ASTNode {
         var left = parseTerm()
         while (true) {
-            if(match (TokenType.Leq)) {
+            if (match(TokenType.LessThanOrEqualTo)) {
                 val right = parseTerm()
-                left = ASTNode.BinOp(BinOpType.Leq, left, right)
-            }
-            else if(match (TokenType.Lt)) {
+                left = BinaryExpression(TokenType.LessThanOrEqualTo, left, right)
+            } else if (match(TokenType.LessThan)) {
                 val right = parseTerm()
-                left = ASTNode.BinOp(BinOpType.Lt, left, right)
-            }
-            else if(match (TokenType.Gt)) {
+                left = BinaryExpression(TokenType.LessThan, left, right)
+            } else if (match(TokenType.GreaterThan)) {
                 val right = parseTerm()
-                left = ASTNode.BinOp(BinOpType.Gt, left, right)
-            }
-            else if(match (TokenType.Geq)) {
+                left = BinaryExpression(TokenType.GreaterThan, left, right)
+            } else if (match(TokenType.GreaterThanOrEqualTo)) {
                 val right = parseTerm()
-                left = ASTNode.BinOp(BinOpType.Geq, left, right)
-            }
-            else {
+                left = BinaryExpression(TokenType.GreaterThanOrEqualTo, left, right)
+            } else {
                 break
             }
         }
@@ -202,15 +159,13 @@ class Parser(
     private fun parseTerm(): ASTNode {
         var left = parseFactor()
         while (true) {
-            if(match (TokenType.Plus)) {
+            if (match(TokenType.Plus)) {
                 val right = parseFactor()
-                left = ASTNode.BinOp(BinOpType.Add, left, right)
-            }
-            else if (match(TokenType.Minus)) {
+                left = BinaryExpression(TokenType.Plus, left, right)
+            } else if (match(TokenType.Minus)) {
                 val right = parseFactor()
-                left = ASTNode.BinOp(BinOpType.Subtract, left, right)
-            }
-            else {
+                left = BinaryExpression(TokenType.Minus, left, right)
+            } else {
                 break
             }
         }
@@ -219,56 +174,36 @@ class Parser(
 
     private fun parseFactor(): ASTNode {
         var left =
-            parseUnary() ?: throw Exception("Parser error: expected an expression before '*', '/', or '%' operator.")
+            parseUnary()
         while (true) {
             if (match(TokenType.Multiply)) {
-                val right = parseUnary() ?: throw Exception("Parser error: expected an expression after '*' operator.")
-                left = ASTNode.BinOp(BinOpType.Multiply, left, right)
-            }
-            else if (match(TokenType.Divide)) {
-                val right = parseUnary() ?: throw Exception("Parser error: expected an expression after '/' operator.")
-                left = ASTNode.BinOp(BinOpType.Divide, left, right)
-            }
-            else if (match(TokenType.Modulus)) {
-                val right = parseUnary() ?: throw Exception("Parser error: expected an expression after '%' operator.")
-                left = ASTNode.BinOp(BinOpType.Modulus, left, right)
-            }
-            else {
+                val right = parseUnary()
+                left = BinaryExpression(TokenType.Multiply, left, right)
+            } else if (match(TokenType.Divide)) {
+                val right = parseUnary()
+                left = BinaryExpression(TokenType.Divide, left, right)
+            } else if (match(TokenType.Modulus)) {
+                val right = parseUnary()
+                left = BinaryExpression(TokenType.Modulus, left, right)
+            } else {
                 break
             }
         }
         return left
     }
 
-    private fun parseUnary() : ASTNode? {
-        if (match(TokenType.Minus)) {
-            val right =
-                parseUnary() ?: throw Exception("Parser error: expected an expression after unary '-' operator.")
-            return ASTNode.UnOp(UnOpType.Negate, right)
-        }
-        else if (match(TokenType.Not)) {
-            val right =
-                parseUnary() ?: throw Exception("Parser error: expected an expression after unary '!' operator.")
-            return ASTNode.UnOp(UnOpType.Not, right)
-        }
-        return parseBuiltInFunction()
-    }
-
-    private fun parseBuiltInFunction(): ASTNode? {
-        val params: ArrayList<ASTNode?> = ArrayList()
-        if(match(TokenType.OutNumber)) {
-            consume(TokenType.LeftParenthesis, "Expected '(' after built in function name.")
-            val param = parseOr()
-            params += param
-            consume(TokenType.RightParenthesis, "Expected ')' after function arguments.")
-            return ASTNode.BuiltInCall(BuiltInFunction.OutNumber, params)
+    private fun parseUnary(): ASTNode {
+        if (match(TokenType.Minus) || match(TokenType.Not)) {
+            val unaryType = previous()
+            val value = parseUnary()
+            return UnaryExpression(unaryType.type, value)
         }
         return parseFunctionCall()
     }
 
-    private fun parseFunctionCall(): ASTNode? {
+    private fun parseFunctionCall(): ASTNode {
         var left = parseParenthesis()
-        val params: ArrayList<ASTNode?> = ArrayList()
+        val params: MutableList<ASTNode> = mutableListOf()
         if (match(TokenType.LeftParenthesis)) {
             while (true) {
                 if (check(TokenType.RightParenthesis)) {
@@ -282,41 +217,67 @@ class Parser(
                 }
             }
             consume(TokenType.RightParenthesis, "Expected ')' after function arguments.")
-            if (left != null) {
-                left = ASTNode.FunctionCall(left, params)
-            }
+            left = FunctionCall(left, params)
         }
         return left
     }
 
-    private fun parseParenthesis(): ASTNode? {
+    private fun parseParenthesis(): ASTNode {
         if (match(TokenType.LeftParenthesis)) {
             val expr = parse()
             consume(TokenType.RightParenthesis, "expected ')' after expression.")
             return expr
         }
-        else if (match(TokenType.LeftCurlyBracket)) {
-            val expr = parse()
-            consume(TokenType.RightCurlyBracket, "expected '}' after expression.")
-            return expr
-        }
+
         return parseLiteral()
     }
 
-    private fun parseLiteral() : ASTNode? {
+    private fun parseLiteral(): ASTNode {
         if (match(TokenType.Identifier)) {
-            val prev = previous() as Token.StringToken
-            return ASTNode.Identifier(prev.value, true)
+            val prev = previous()
+            return Identifier(prev.value!!, true)
+        } else if (match(TokenType.Number)) {
+            val prev = previous()
+            return NumberLiteral(prev.value!!.toInt())
+        } else if (match(TokenType.Boolean)) {
+            val prev = previous()
+            return BooleanLiteral(prev.value!! == "true")
+        } else if (match(TokenType.Null)) {
+            val prev = previous()
+            return BooleanLiteral(prev.value!! == "true")
+        } else if (match(TokenType.LeftCurlyBracket)) {
+            val expr = parseSemicolon()
+            consume(TokenType.RightCurlyBracket, "Expected '}' to close block.")
+            return expr
+        } else if (match(TokenType.If)) {
+            val conds = mutableListOf<ASTNode>()
+            val ifTrues = mutableListOf<ASTNode>()
+
+            do {
+                consume(TokenType.LeftParenthesis, "expected '(' after 'if'.")
+                conds += parse()
+                consume(TokenType.RightParenthesis, "expected ')' after 'if' condition.")
+
+                ifTrues += parseLiteral()
+
+                if (!match(TokenType.ElseIf)) {
+                    break
+                }
+            } while (true)
+
+            var ifFalse: ASTNode? = null
+            if (peek().type == TokenType.Else) {
+                advance()
+                ifFalse = parseLiteral()
+            }
+            return IfElse(conds, ifTrues, ifFalse)
         }
-        else if (match(TokenType.Number)) {
-            val prev = previous() as Token.IntToken
-            return ASTNode.NumberLiteral(prev.value)
+
+        if (isAtEnd()) {
+            throw Exception("Expected literal but found EOF")
+        } else {
+            throw Exception("Expected literal but found '" + peek().type + "'")
         }
-        else if (match(TokenType.Boolean)) {
-            val prev = previous() as Token.StringToken
-            return ASTNode.BooleanLiteral(prev.value == "true")
-        }
-        return null
     }
 
 
@@ -330,17 +291,17 @@ class Parser(
 
     private fun check(type: TokenType) = !isAtEnd() && type == peek().type
 
-    private fun consume(type: TokenType, error: String) : Token{
-        if(check(type)) {
+    private fun consume(type: TokenType, error: String): Token {
+        if (check(type)) {
             return advance()
         }
         throw Exception("Parer error: $error")
     }
 
-    private fun match(type: TokenType) : Boolean {
-        if(!isAtEnd()) {
+    private fun match(type: TokenType): Boolean {
+        if (!isAtEnd()) {
             val nextType = peek().type
-            if(type == nextType) {
+            if (type == nextType) {
                 advance()
                 return true
             }
