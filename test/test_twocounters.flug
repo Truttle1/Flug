@@ -20,10 +20,10 @@ const count_constructor = func(const init) => {
 
 const a = count_constructor(3);
 const b = count_constructor(0);
-outn(a(0));
-outn(b(0));
+print(a(0));
+print(b(0));
 b(1);
 a(2);
-outn(a(0));
-outn(b(0))
+print(a(0));
+print(b(0))
 

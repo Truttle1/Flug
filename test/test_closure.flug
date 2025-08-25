@@ -19,7 +19,7 @@ let count_constructor = func(init) => {
 };
 
 let my_count = count_constructor(3);
-outn(my_count(1));
-outn(my_count(1));
-outn(my_count(1));
-outn(my_count(0))
+print(my_count(1));
+print(my_count(1));
+print(my_count(1));
+print(my_count(0))
